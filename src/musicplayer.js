@@ -17,8 +17,12 @@ export async function play(interaction) {
   let sanitizedQuery = ""
   //If link remove other query params
   if (query.includes("https://")) {
-    sanitizedQuery = query.split("&")[0]
+    //Not a playlist, remove &
+    if (!query.includes("playlist")) sanitizedQuery = query.split("&")[0]
+    //A playlist, do nothing
+    else sanitizedQuery = query
   } else {
+    //Not a link, remove symbols
     sanitizedQuery = query.replace(/[^a-zA-Z]/g, "")
   }
   sanitizedQuery = sanitizedQuery.trim()
