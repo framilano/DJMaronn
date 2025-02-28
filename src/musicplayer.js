@@ -13,13 +13,24 @@ export async function play(interaction) {
   await interaction.deferReply(); //Telling discord to have patience with this command
   const query = interaction.options.getString('song', true);
   const queue = useQueue(interaction.guild)
+
+  let sanitizedQuery = ""
+  //If link remove other query params
+  if (query.includes("https://")) {
+    sanitizedQuery = query.split("&")[0]
+  } else {
+    sanitizedQuery = query.replace(/[^a-zA-Z]/g, "")
+  }
+  sanitizedQuery = sanitizedQuery.trim()
+
+  info(interaction, `Sanitized query: ${sanitizedQuery}`)
   
   // Get the voice channel of the user
   const voiceChannel = interaction.member.voice.channel;
   
   try {
     // Play the song in the voice channel
-    const result = await player.play(voiceChannel, query, {
+    const result = await player.play(voiceChannel, sanitizedQuery, {
       nodeOptions: {
         metadata: { channel: interaction.channel }, // Store text channel as metadata on the queue
       },
