@@ -19,7 +19,7 @@ const proxyAgent = new ProxyAgent({
   uri: new URL(jsonData.proxyUrl)
 })
 const youtubeExtractorOptions = {
-  "proxy": proxyAgent
+  //"proxy": proxyAgent
 }
 player.extractors.register(YoutubeiExtractor, youtubeExtractorOptions)
 
