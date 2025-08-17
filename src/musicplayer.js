@@ -14,61 +14,50 @@ export async function play(interaction) {
   const query = interaction.options.getString('song', true);
   const queue = useQueue(interaction.guild)
 
-  let sanitizedQuery = ""
-  //If link remove other query params
-  if (query.includes("https://")) {
-    //Not a playlist, remove &
-    if (!query.includes("playlist")) sanitizedQuery = query.split("&")[0]
-    //A playlist, do nothing
-    else sanitizedQuery = query
-  } else {
-    //Not a link, remove symbols
-    sanitizedQuery = query.replace(/[^a-zA-Z]/g, "")
-  }
-  sanitizedQuery = sanitizedQuery.trim()
+  let sanitizedQuery = query.trim()
 
   info(interaction, `Sanitized query: ${sanitizedQuery}`)
+
+  const searchResult = await player.search(sanitizedQuery, { requestedBy: interaction.user });
+
+  if (!searchResult.hasTracks()) {
+    console.warn(interaction, "[STOP] No tracks found for " + sanitizedQuery);
+    
+    sendEmbedded({title: 'No track has been found for query ' + sanitizedQuery, description: null, msgSource: interaction, editReply: true });
+    return;
+  }
   
   // Get the voice channel of the user
   const voiceChannel = interaction.member.voice.channel;
-  
+
+  // Play the song in the voice channel
+  let result = null;
   try {
-    // Play the song in the voice channel
-    const result = await player.play(voiceChannel, sanitizedQuery, {
+    result = await player.play(voiceChannel, searchResult, {
       nodeOptions: {
-        metadata: { channel: interaction.channel }, // Store text channel as metadata on the queue
+        metadata: { channel: interaction.channel, requestedBy: interaction.user } // Store text channel as metadata on the queue
       },
-    });
-
-    let track = result.track;
-    
-    if (!queue || queue.size == 0) {
-      await sendEmbedded({
-        title: `Starting new queue with: ${track.title}`, 
-        msgSource: interaction, 
-        url: track.url, 
-        editReply: true
-      })
-    } else {
-      sendEmbedded({
-        title: `Adding "${track.title}" to the queue`, 
-        msgSource: interaction, 
-        description: `There are ${queue.size} songs in queue`,
-        url: track.url, 
-        editReply: true
-      })
-    }
-
-    debug(interaction, "[play STOP]")
-  } catch (errorExecute) {
+    })
+  } catch (e) {
     // Handle any errors that occur
-    error(interaction.channelId, errorExecute);
-    sendEmbedded({title: 'An error occurred while playing the song!', 
-      description: errorExecute,
+    error(interaction.channelId, e.message);
+    sendEmbedded({title: 'An error occurred while playing the song! ' + e.code, description: e.message, msgSource: interaction, editReply: true})
+    return
+  }
+  
+  if (!queue || queue.size == 0) {
+    await sendEmbedded({ title: `Starting new queue with: ${result.track.title}`, msgSource: interaction, url: result.track.url, editReply: true})
+  } else {
+    sendEmbedded({
+      title: `Adding "${result.track.title}" to the queue`, 
       msgSource: interaction, 
+      description: `There are ${queue.size} songs in queue`,
+      url: result.track.url, 
       editReply: true
     })
   }
+
+  debug(interaction, "[play STOP]")
 }
 
 /**

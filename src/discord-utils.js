@@ -46,15 +46,16 @@ export function deleteOldBotMessagesCommand(interaction) {
     if (currentTextChannel != null) {
         currentTextChannel.messages.fetch()
             .then(messages => {
-                let botMessages = messages.filter(msg => msg.author.bot);
+                let botMessages = messages.filter(msg => msg.author.bot && msg.bulkDeletable);
                 if (Array.from(botMessages).length != 0) {
                     currentTextChannel.bulkDelete(botMessages)
                         .then(messages => {
                             debug(interaction, "I deleted " + Array.from(messages).length + " messages")
                             sendEmbedded({ title: "I deleted " + Array.from(messages).length + " messages", msgSource: interaction })
                         })
-                        .catch(() => {
-                            info(interaction, "Error while deleting, maybe a message was being sent while deleted?")
+                        .catch((error_msg) => {
+                            error(interaction, "Error while deleting messages:" + error_msg)
+                            sendEmbedded({ title: "Couldn't delete messages", description: error_msg.message, msgSource: interaction })
                         });
                 } else {
                     debug(interaction, "There's nothing to delete")
@@ -69,7 +70,7 @@ export function deleteOldBotMessages(channel) {
     if (channel != null) {
         channel.messages.fetch()
             .then(messages => {
-                let botMessages = messages.filter(msg => msg.author.bot);
+                let botMessages = messages.filter(msg => msg.author.bot && msg.bulkDeletable);
                 if (Array.from(botMessages).length != 0) {
                     channel.bulkDelete(botMessages)
                         .then(messages => {

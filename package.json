@@ -5,8 +5,10 @@
   },
   "dependencies": {
     "discord-player": "^7.1.0",
-    "discord-player-youtubei": "^1.4.6",
-    "discord.js": "^14.19.3",
-    "undici": "^7.9.0"
+    "discord-player-soundcloud": "^1.0.7",
+    "discord.js": "^14.21.0",
+    "ffmpeg-static": "^5.2.0",
+    "mediaplex": "^1.0.0",
+    "undici": "^7.14.0"
   }
 }

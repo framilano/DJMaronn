@@ -8,7 +8,8 @@ const funny_things_to_do = [
   "Sta salvando la Super Terra dagli Automaton 🤖",
   "Sta aspettando Paladins 2 😔",
   "Sta facendo una tripla con Lux 🎥",
-  "Sta sparando dall'altra macchina 🚗"
+  "Sta sparando dall'altra macchina 🚗",
+  "Sta facendo un Easter Egg 🐣"
 ]
 
 /**
@@ -30,7 +31,6 @@ export function handle_events (player, client) {
     });
     
     player.events.on(GuildQueueEvent.PlayerStart, async (queue, track) => {
-        const { channel } = queue.metadata;
     
         client.user.setPresence({
             activities: [{
@@ -43,7 +43,7 @@ export function handle_events (player, client) {
     
         await sendEmbedded({
             title: `Now playing: ${track.title}`,
-            msgSource: channel,
+            msgSource: queue.metadata.channel,
             url: track.url,
             thumbnail: track.thumbnail,
             description: `There are still ${queue.size} songs in queue`,
@@ -53,8 +53,9 @@ export function handle_events (player, client) {
                 { name: "Views", value: track.views, inline: true },
                 { name: "Author", value: track.author, inline: true },
                 { name: "LoopMode", value: Object.keys(QueueRepeatMode).find(key => QueueRepeatMode[key] == queue.repeatMode), inline: true },
-                { name: "IsLive", value: track.live, inline: true }
-            ],
+                { name: "IsLive", value: track.live, inline: true },
+                { name: "RequestedBy", value: queue.metadata.requestedBy, inline: true }
+            ]
         })
     
     });
