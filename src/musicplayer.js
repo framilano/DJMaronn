@@ -1,4 +1,4 @@
-import { useMainPlayer, useQueue, GuildQueueEvent, QueueRepeatMode } from 'discord-player';
+import { useMainPlayer, useQueue, QueueRepeatMode } from 'discord-player';
 import { CommandInteraction } from 'discord.js';
 import { info, debug, error, sendEmbedded } from "./discord-utils.js"
 
@@ -74,7 +74,6 @@ export async function stop(interaction) {
     return
   }
 
-  player.events.emit(GuildQueueEvent.PlayerFinish, queue, queue.currentTrack)
   queue.delete()
   
   await sendEmbedded({msgSource: interaction, title: "Stopped current song and deleted queue"})
@@ -108,9 +107,13 @@ export async function skip(interaction) {
   if (number_of_skips < 1) number_of_skips = 1
 
   if (number_of_skips > queue.size) {
-    player.events.emit(GuildQueueEvent.PlayerFinish, queue, queue.currentTrack)
-    queue.delete()
-    await sendEmbedded({title: 'You skipped over queue\'s length, stopping playback', msgSource: interaction})
+    if (queue.repeatMode == 3) {
+      await sendEmbedded({title: 'Searching for a new song in autoplay...', msgSource: interaction})
+      queue.node.skip();
+    } else {
+      await sendEmbedded({title: 'You skipped over queue\'s length, stopping playback', msgSource: interaction})
+      queue.delete()
+    }
     return
   }
 
