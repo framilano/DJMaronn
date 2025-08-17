@@ -2,7 +2,7 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import jsonData from './config.json' with { type: "json" };
 import { Player } from 'discord-player';
 import { SoundcloudExtractor  } from 'discord-player-soundcloud';
-import { play, stop, skip, loop } from './src/musicplayer.js';
+import { play, stop, skip, loop, filters } from './src/musicplayer.js';
 import { deleteOldBotMessagesCommand, checkCommandPermissions } from './src/discord-utils.js';
 import { init_slash_commands } from './src/loader.js';
 import { handle_events } from './src/events.js'
@@ -49,6 +49,8 @@ client.on('interactionCreate', async interaction => {
   if (interaction.commandName === 'stop') await stop(interaction)
   if (interaction.commandName === 'skip') await skip(interaction)
   if (interaction.commandName === 'loop') await loop(interaction)
+  if (interaction.commandName === 'filters') await filters(interaction)
+
 });
 
 client.login(jsonData.token);

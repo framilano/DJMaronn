@@ -1,4 +1,4 @@
-import { useMainPlayer, useQueue, QueueRepeatMode } from 'discord-player';
+import { useMainPlayer, useQueue, GuildQueueEvent, QueueRepeatMode } from 'discord-player';
 import { CommandInteraction } from 'discord.js';
 import { info, debug, error, sendEmbedded } from "./discord-utils.js"
 
@@ -74,6 +74,7 @@ export async function stop(interaction) {
     return
   }
 
+  player.events.emit(GuildQueueEvent.PlayerFinish, queue, queue.currentTrack);
   queue.delete()
   
   await sendEmbedded({msgSource: interaction, title: "Stopped current song and deleted queue"})
@@ -112,6 +113,7 @@ export async function skip(interaction) {
       queue.node.skip();
     } else {
       await sendEmbedded({title: 'You skipped over queue\'s length, stopping playback', msgSource: interaction})
+      player.events.emit(GuildQueueEvent.PlayerFinish, queue, queue.currentTrack);
       queue.delete()
     }
     return
@@ -146,4 +148,60 @@ export async function loop(interaction) {
  
   // Send a confirmation message
   await sendEmbedded({title: `Loop mode set to ${Object.keys(QueueRepeatMode).find(key => QueueRepeatMode[key] == loopMode)}`, msgSource: interaction})
+}
+
+/**
+ * Applies or resets audio filters on the current music queue.
+ *
+ * This command allows users to enable up to two audio filters or reset all filters to default.
+ * If "default" is specified as the first filter, all filters are removed.
+ * Only valid filters are applied. Sends an embedded message to the user with the result.
+ *
+ * @param {CommandInteraction} interaction - Discord interaction object containing command options and context.
+ *
+ * @example
+ * // Enable "bassboost" and "echo" filters
+ * await filters(interaction);
+ *
+ * @returns {Promise<void>}
+ *
+ * @see useQueue
+ * @see sendEmbedded
+ *
+ * Command options:
+ *   - filter1: {string} Name of the first filter to enable, or "default" to reset all filters.
+ *   - filter2: {string} (Optional) Name of the second filter to enable.
+ */
+export async function filters(interaction) {
+  debug(interaction, "[filters START]")
+  const queue = useQueue(interaction.guild)
+  
+  let filters = [];
+  let filter_one = interaction.options.getString("filter1").trim();
+  //Resetting filters
+  if (filter_one == "default") {
+      await queue.filters.ffmpeg.toggle(queue.filters.ffmpeg.getFiltersEnabled());
+      await sendEmbedded({
+        title: `Removed all filters`, 
+        msgSource: interaction}
+      );
+      info(interaction, "[filters STOP] Resetting all filters")
+      return;
+  }
+  if (queue.filters.ffmpeg.isValidFilter(filter_one)) filters.push(filter_one);
+  let filter_two = interaction.options.getString("filter2");
+  if (queue.filters.ffmpeg.isValidFilter(filter_two)) filters.push(filter_two);
+
+  //Actually enable filters
+  await queue.filters.ffmpeg.toggle(filters);
+  
+  //Building a coherent response
+  let enabled_filters = queue.filters.ffmpeg.getFiltersEnabled();
+  let string_of_current_filters = enabled_filters.length != 0 ? enabled_filters.toString() : "None";
+  await sendEmbedded({
+    title: `Currently enabled filters`, 
+    description: string_of_current_filters,
+    msgSource: interaction}
+  );
+  info(interaction, "[filters STOP] Added some filters");
 }
