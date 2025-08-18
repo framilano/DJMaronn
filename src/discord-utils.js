@@ -29,7 +29,7 @@ export async function sendEmbedded({
         msgEmbed.addFields(filteredFields)
     }
     msgEmbed.setTimestamp()
-    msgEmbed.setFooter({ text: 'Bot by fra98_', iconURL: 'https://i.imgur.com/mQ2MLQU.jpg' });
+    msgEmbed.setFooter({ text: 'Bot by fra98_', iconURL: 'https://imgur.com/moqL0rw' });
     try {
         //Only CommandInteraction has applicationId as property
         if (msgSource.hasOwnProperty('applicationId')) {
