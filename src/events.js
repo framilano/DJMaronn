@@ -30,8 +30,7 @@ export function handle_events (player, client) {
         error(null, errorObj);
     });
     
-    player.events.on(GuildQueueEvent.PlayerStart, async (queue, track) => {
-    
+    player.events.on(GuildQueueEvent.PlayerStart, async (queue, track) => {    
         client.user.setPresence({
             activities: [{
                 name: `Sta ascoltando ${track.cleanTitle}`,
@@ -45,7 +44,7 @@ export function handle_events (player, client) {
             title: `Now playing: ${track.title}`,
             msgSource: queue.metadata.channel,
             url: track.url,
-            thumbnail: track.thumbnail,
+            thumbnail: track.thumbnail ? track.thumbnail : null,    //Checking if thumbnail is something first...
             description: `There are still ${queue.size} songs in queue`,
             color: "#181818",
             listOfFields: [

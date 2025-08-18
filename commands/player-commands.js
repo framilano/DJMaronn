@@ -8,7 +8,8 @@ export const data = [
   .addStringOption(option =>
       option.setName('song')
       .setDescription('The song to play')
-      .setRequired(true),
+      .setRequired(true)
+      .setAutocomplete(true)
   ),
   new SlashCommandBuilder()
   .setName('stop')

@@ -3,6 +3,7 @@ import jsonData from './config.json' with { type: "json" };
 import { Player } from 'discord-player';
 import { SoundcloudExtractor  } from 'discord-player-soundcloud';
 import { play, stop, skip, loop, filters } from './src/musicplayer.js';
+import { autoCompleteSongs } from './src/autocomplete.js';
 import { deleteOldBotMessagesCommand, checkCommandPermissions } from './src/discord-utils.js';
 import { init_slash_commands } from './src/loader.js';
 import { handle_events } from './src/events.js'
@@ -35,9 +36,18 @@ handle_events(player, client)
 */
 
 // Enables default extractor
-await player.extractors.register(SoundcloudExtractor );
+await player.extractors.register(SoundcloudExtractor);
 
 client.on('interactionCreate', async interaction => {
+  if (interaction.isChatInputCommand()) await handleChatCommands(interaction);
+	else if (interaction.isAutocomplete()) handleAutoComplete(interaction)
+});
+
+async function handleAutoComplete(interaction) {
+  if (interaction.commandName == 'play') await autoCompleteSongs(interaction)
+}
+
+async function handleChatCommands(interaction) {
   if (interaction.commandName === 'delete-messages') {
     deleteOldBotMessagesCommand(interaction)
     return
@@ -50,7 +60,6 @@ client.on('interactionCreate', async interaction => {
   if (interaction.commandName === 'skip') await skip(interaction)
   if (interaction.commandName === 'loop') await loop(interaction)
   if (interaction.commandName === 'filters') await filters(interaction)
-
-});
+}
 
 client.login(jsonData.token);
