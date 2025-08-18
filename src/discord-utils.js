@@ -1,5 +1,7 @@
 import { EmbedBuilder, PermissionsBitField } from 'discord.js';
 
+const dj_maronn_id = '1332640482097893407'
+
 //Sends embededded messages
 export async function sendEmbedded({
     title = null,
@@ -47,7 +49,9 @@ export function deleteOldBotMessagesCommand(interaction) {
     if (currentTextChannel != null) {
         currentTextChannel.messages.fetch()
             .then(messages => {
-                let botMessages = messages.filter(msg => msg.author.bot && msg.bulkDeletable);
+                let botMessages = messages.filter(function(msg) { 
+                    return msg.author.bot && msg.bulkDeletable && msg.author.id == dj_maronn_id
+                });
                 if (Array.from(botMessages).length != 0) {
                     currentTextChannel.bulkDelete(botMessages)
                         .then(messages => {
@@ -71,7 +75,9 @@ export function deleteOldBotMessages(channel) {
     if (channel != null) {
         channel.messages.fetch()
             .then(messages => {
-                let botMessages = messages.filter(msg => msg.author.bot && msg.bulkDeletable);
+                let botMessages = messages.filter(function(msg) { 
+                    return msg.author.bot && msg.bulkDeletable && msg.author.id == dj_maronn_id
+                });
                 if (Array.from(botMessages).length != 0) {
                     channel.bulkDelete(botMessages)
                         .then(messages => {
