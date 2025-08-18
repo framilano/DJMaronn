@@ -1,5 +1,5 @@
 import { Player, GuildQueueEvent, QueueRepeatMode } from "discord-player";
-import { Client, ActivityType, Events } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, ActivityType } from "discord.js";
 import { sendEmbedded, error, deleteOldBotMessages } from "./discord-utils.js";
 
 const funny_things_to_do = [
@@ -12,19 +12,39 @@ const funny_things_to_do = [
   "Sta facendo un Easter Egg 🐣"
 ]
 
+const stop_btn = new ButtonBuilder()
+.setCustomId('stop')
+.setStyle((ButtonStyle.Primary))
+.setEmoji('⏹️');
+
+const pause_btn = new ButtonBuilder()
+.setCustomId('pause')
+.setStyle((ButtonStyle.Primary))
+.setEmoji('⏯️');
+
+const next_track_btn = new ButtonBuilder()
+.setCustomId('next_track')
+.setStyle(ButtonStyle.Primary)
+.setEmoji('⏭️');
+
+const playback_btns = new ActionRowBuilder()
+.addComponents(stop_btn, pause_btn, next_track_btn);
+
+const defaultLoopMode = QueueRepeatMode.AUTOPLAY
+
 /**
  * Enqueue song
  * @param {Player} player 
  * @param {Client} client 
  */
 export function handle_events (player, client) {
-    player.events.on('error', (queue, errorObj) => {
+    player.events.on(GuildQueueEvent.Error, (queue, errorObj) => {
         // Emitted when the player queue encounters error
         error(null, `General player error event: ${errorObj.message}`);
         error(null, errorObj);
     });
     
-    player.events.on('playerError', (queue, errorObj) => {
+    player.events.on(GuildQueueEvent.PlayerError, (queue, errorObj) => {
         // Emitted when the audio player errors while streaming audio track
         error(null, `Player error event: ${error.errorObj}`);
         error(null, errorObj);
@@ -39,6 +59,9 @@ export function handle_events (player, client) {
             }],
             status: 'online'
         });
+        
+        //Setting default loop mode
+        if (queue.metadata.firstTrack) queue.setRepeatMode(defaultLoopMode);
     
         await sendEmbedded({
             title: `Now playing: ${track.title}`,
@@ -54,7 +77,8 @@ export function handle_events (player, client) {
                 { name: "LoopMode", value: Object.keys(QueueRepeatMode).find(key => QueueRepeatMode[key] == queue.repeatMode), inline: true },
                 { name: "IsLive", value: track.live, inline: true },
                 { name: "RequestedBy", value: queue.metadata.requestedBy, inline: true }
-            ]
+            ],
+            components: [playback_btns]
         })
     
     });

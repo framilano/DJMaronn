@@ -9,7 +9,8 @@ export async function sendEmbedded({
     thumbnail = null,
     msgSource = null,
     editReply = false,
-    listOfFields = null
+    listOfFields = null,
+    components = null
 } = {}) {
     let msgEmbed = new EmbedBuilder();
     if (color != null) msgEmbed.setColor(color);
@@ -33,8 +34,8 @@ export async function sendEmbedded({
         //Only CommandInteraction has applicationId as property
         if (msgSource.hasOwnProperty('applicationId')) {
             if (editReply) await msgSource.editReply({ embeds: [msgEmbed] });
-            else await msgSource.reply({ embeds: [msgEmbed] });
-        } else await msgSource.send({ embeds: [msgEmbed] });
+            else await msgSource.reply({ embeds: [msgEmbed], components: components });
+        } else await msgSource.send({ embeds: [msgEmbed], components: components });
     } catch (errorObject) {
         error(msgSource, "[discord-utils.sendEmbedded ERROR] error = " + errorObject)
     }

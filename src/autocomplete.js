@@ -1,5 +1,44 @@
 import { useMainPlayer } from 'discord-player';
- 
+
+const filter_choices = [
+    'default',
+    'bassboost',  
+    'earrape',  
+    'bassboost_low',
+    'bassboost_high',  
+    '8D',  
+    'vaporwave',  
+    'nightcore',  
+    'lofi',  
+    'phaser',  
+    'tremolo',  
+    'vibrato',  
+    'reverse',  
+    'treble',  
+    'normalizer2',  
+    'normalizer',  
+    'surrounding',  
+    'pulsator',  
+    'subboost',  
+    'karaoke',  
+    'flanger',  
+    'gate',  
+    'haas',  
+    'mcompand',  
+    'mono',  
+    'mstlr',  
+    'mstrr',  
+    'compressor',  
+    'expander',  
+    'softlimiter',  
+    'chorus',  
+    'chorus2d',  
+    'chorus3d',  
+    'fadein',  
+    'dim',  
+    'silenceremove'
+]
+
 export async function autoCompleteSongs(interaction) {
     const player = useMainPlayer();
     const query = interaction.options.getString('song', true);
@@ -27,5 +66,13 @@ export async function autoCompleteSongs(interaction) {
     } else {
         return interaction.respond([])
     }
+}
+
+export async function autoCompleteFilters(interaction) {
+    const focusedValue = interaction.options.getFocused();
+    const filtered = filter_choices.filter(choice => choice.startsWith(focusedValue));
+    await interaction.respond(
+        filtered.slice(0, 9).map(choice => ({ name: choice, value: choice })),
+    );
 }
  

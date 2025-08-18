@@ -1,10 +1,19 @@
-import { useMainPlayer, useQueue, GuildQueueEvent, QueueRepeatMode } from 'discord-player';
-import { CommandInteraction } from 'discord.js';
+import { useMainPlayer, useQueue, GuildQueueEvent, QueueRepeatMode, useTimeline } from 'discord-player';
+import { ButtonInteraction, CommandInteraction } from 'discord.js';
 import { info, debug, error, sendEmbedded } from "./discord-utils.js"
 
 /**
- * Enqueue song
- * @param {CommandInteraction} interaction 
+ * Plays a song in the user's voice channel.
+ *
+ * Retrieves the song query from the interaction, sanitizes it, and attempts to play it in the user's current voice channel.
+ * If the queue is empty or does not exist, a new queue is started. Otherwise, the song is added to the existing queue.
+ * Sends an embedded message to the user with the result or any errors encountered.
+ *
+ * @param {CommandInteraction} interaction - Discord interaction object containing command options and context.
+ * @returns {Promise<void>}
+ *
+ * @example
+ * await play(interaction);
  */
 export async function play(interaction) {
   debug(interaction, "[play START]")
@@ -12,30 +21,26 @@ export async function play(interaction) {
   const player = useMainPlayer();
   await interaction.deferReply(); //Telling discord to have patience with this command
   const query = interaction.options.getString('song', true);
-  const queue = useQueue(interaction.guild)
-
+  
+  
   let sanitizedQuery = query.trim()
-
+  
   info(interaction, `Sanitized query: ${sanitizedQuery}`)
-
-  const searchResult = await player.search(sanitizedQuery, { requestedBy: interaction.user });
-
-  if (!searchResult.hasTracks()) {
-    console.warn(interaction, "[STOP] No tracks found for " + sanitizedQuery);
-    
-    sendEmbedded({title: 'No track has been found for query ' + sanitizedQuery, description: null, msgSource: interaction, editReply: true });
-    return;
-  }
   
   // Get the voice channel of the user
   const voiceChannel = interaction.member.voice.channel;
-
+  
+  //Retrieving currentQueue
+  let queue = useQueue(interaction.guild);
+  
   // Play the song in the voice channel
   let result = null;
   try {
-    result = await player.play(voiceChannel, searchResult, {
+    let metadata = { channel: interaction.channel, requestedBy: interaction.user }
+    if (!queue) metadata['firstTrack'] = true;
+    result = await player.play(voiceChannel, sanitizedQuery, {
       nodeOptions: {
-        metadata: { channel: interaction.channel, requestedBy: interaction.user } // Store text channel as metadata on the queue
+        metadata: metadata // Store text channel as metadata on the queue
       },
     })
   } catch (e) {
@@ -45,9 +50,9 @@ export async function play(interaction) {
     return
   }
   
-  if (!queue || queue.size == 0) {
-    await sendEmbedded({ title: `Starting new queue with: ${result.track.title}`, msgSource: interaction, url: result.track.url, editReply: true})
-  } else {
+  //Queue before this play was empty (or never existed)
+  if (!queue || queue.size == 0) await sendEmbedded({ title: `Starting new queue with: ${result.track.title}`, msgSource: interaction, url: result.track.url, editReply: true})
+  else {
     sendEmbedded({
       title: `Adding "${result.track.title}" to the queue`, 
       msgSource: interaction, 
@@ -103,7 +108,7 @@ export async function skip(interaction) {
   info(interaction, `Queue size: ${queue.size}`)
 
   let number_of_skips = 1
-  let skips = interaction.options.getInteger("skips");
+  let skips = interaction.options ? interaction.options.getInteger("skips") : 1;  //interaction.options is null during button interactions
   if (skips) number_of_skips = skips
   if (number_of_skips < 1) number_of_skips = 1
 
@@ -132,11 +137,13 @@ export async function skip(interaction) {
  * @param {CommandInteraction} interaction 
  */
 export async function loop(interaction) {
+  debug(interaction, "[loop START]")
   // Get the current queue
   const queue = useQueue(interaction.guild);
  
   if (!queue) {
     await sendEmbedded({title: 'This server does not have an active player session.', msgSource: interaction})
+    info(interaction, "[loop STOP] No queue found")
     return
   }
  
@@ -148,7 +155,34 @@ export async function loop(interaction) {
  
   // Send a confirmation message
   await sendEmbedded({title: `Loop mode set to ${Object.keys(QueueRepeatMode).find(key => QueueRepeatMode[key] == loopMode)}`, msgSource: interaction})
+  info(interaction, "[loop STOP] Changed loop mode")
 }
+
+/**
+ * Toggles pause/resume for the current music queue.
+ *
+ * If playback is currently paused, this resumes it; otherwise, it pauses playback.
+ * Designed for use with Discord button interactions or slash commands.
+ * No reply is sent to the user; the interaction is simply deferred.
+ *
+ * @param {ButtonInteraction} interaction - Discord interaction object representing the user's action.
+ * @returns {Promise<void>}
+ *
+ * @example
+ * await pause(interaction);
+ */
+export async function pause(interaction) {
+  // Get the queue's timeline
+  const timeline = useTimeline({node: interaction.guild});
+ 
+  // Invert the pause state
+  const wasPaused = timeline.paused;
+  wasPaused ? timeline.resume() : timeline.pause();
+
+  //Buttons specific interaction, closes the interaction without a reply, super cool!
+  interaction.deferUpdate();
+}
+
 
 /**
  * Applies or resets audio filters on the current music queue.
@@ -175,6 +209,14 @@ export async function loop(interaction) {
 export async function filters(interaction) {
   debug(interaction, "[filters START]")
   const queue = useQueue(interaction.guild)
+
+  if (!queue) {
+    await sendEmbedded({
+      title: `There's no track or queue to filter`, 
+      msgSource: interaction}
+    );
+    return
+  }
   
   let filters = [];
   let filter_one = interaction.options.getString("filter1").trim();

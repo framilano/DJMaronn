@@ -62,10 +62,12 @@ export const data = [
     option.setName('filter1')
     .setDescription('First filter')
     .setRequired(true)
+    .setAutocomplete(true)
   )
   .addStringOption(option =>
     option.setName('filter2')
     .setDescription('Second filter')
     .setRequired(false)
+    .setAutocomplete(true)
   ),
 ];

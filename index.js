@@ -2,8 +2,8 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import jsonData from './config.json' with { type: "json" };
 import { Player } from 'discord-player';
 import { SoundcloudExtractor  } from 'discord-player-soundcloud';
-import { play, stop, skip, loop, filters } from './src/musicplayer.js';
-import { autoCompleteSongs } from './src/autocomplete.js';
+import { play, stop, skip, loop, pause, filters } from './src/musicplayer.js';
+import { autoCompleteSongs, autoCompleteFilters } from './src/autocomplete.js';
 import { deleteOldBotMessagesCommand, checkCommandPermissions } from './src/discord-utils.js';
 import { init_slash_commands } from './src/loader.js';
 import { handle_events } from './src/events.js'
@@ -40,11 +40,19 @@ await player.extractors.register(SoundcloudExtractor);
 
 client.on('interactionCreate', async interaction => {
   if (interaction.isChatInputCommand()) await handleChatCommands(interaction);
-	else if (interaction.isAutocomplete()) handleAutoComplete(interaction)
+	else if (interaction.isAutocomplete()) await handleAutoComplete(interaction)
+  else if (interaction.isButton()) await handleButtons(interaction)
 });
+
+async function handleButtons(interaction) {
+  if (interaction.customId == 'stop') await stop(interaction)
+  if (interaction.customId == 'pause') await pause(interaction)
+  if (interaction.customId == 'next_track') await skip(interaction)
+}
 
 async function handleAutoComplete(interaction) {
   if (interaction.commandName == 'play') await autoCompleteSongs(interaction)
+  if (interaction.commandName == 'filters') await autoCompleteFilters(interaction)
 }
 
 async function handleChatCommands(interaction) {
