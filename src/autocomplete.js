@@ -46,7 +46,8 @@ export async function autoCompleteSongs(interaction) {
     
     //Only check results for strings with size greater than 4 that are not URLs
     if (query.length > 1 && !query.includes("https://")) {
-        const results = await timedFunction(player.search(query), 2600, []);
+        const results = await timedFunction(player.search(query), 2000, []);
+        if (results.length == 0) return interaction.respond([]);
 
         const tracks = results.tracks.slice(0, 9);
         

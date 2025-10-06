@@ -34,6 +34,7 @@ export async function play(interaction) {
   
   // Play the song in the voice channel
   let result = null;
+  
   //Handle some metadata for the queue
   let queueCreationOptions = {  //These options are set in queue only during its creation with nodeOptions
     metadata: {
@@ -43,6 +44,8 @@ export async function play(interaction) {
   }
   // If queue already exists, specify it's not a firstTrack anymore
   if (queue) queue.metadata.isFirstTrack = false
+  
+  //Actually play the music
   try {
     result = await player.play(voiceChannel, sanitizedQuery, { requestedBy: interaction.user, nodeOptions: queueCreationOptions })
   } catch (e) {
