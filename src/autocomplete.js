@@ -1,4 +1,5 @@
 import { useMainPlayer } from 'discord-player';
+import { timedFunction } from "./discord-utils.js"
 
 const filter_choices = [
     'default',
@@ -45,7 +46,7 @@ export async function autoCompleteSongs(interaction) {
     
     //Only check results for strings with size greater than 4 that are not URLs
     if (query.length > 1 && !query.includes("https://")) {
-        const results = await player.search(query);
+        const results = await timedFunction(player.search(query), 2600, []);
 
         const tracks = results.tracks.slice(0, 9);
         

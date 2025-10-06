@@ -93,6 +93,13 @@ export function deleteOldBotMessages(channel) {
     }
 }
 
+export function timedFunction(promise, ms, defaultAnswer) {
+    const timeout = new Promise(
+        (_, reject) => setTimeout(() => reject(defaultAnswer), ms)
+    );
+  return Promise.race([promise, timeout]);
+}
+
 export function info(interaction, message) {
     if (interaction != null) console.info(`[INFO] [${extractTimestamp()}] [${interaction.channelId}] `, message)
     else console.info(`[${extractTimestamp()}] `, message)

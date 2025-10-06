@@ -61,8 +61,8 @@ export function handle_events (player, client) {
         });
         
         //Setting default loop mode
-        if (queue.metadata.firstTrack) queue.setRepeatMode(defaultLoopMode);
-    
+        if (queue.metadata.isFirstTrack) queue.setRepeatMode(defaultLoopMode);
+        
         await sendEmbedded({
             title: `Now playing: ${track.title}`,
             msgSource: queue.metadata.channel,
@@ -76,7 +76,7 @@ export function handle_events (player, client) {
                 { name: "Author", value: track.author, inline: true },
                 { name: "LoopMode", value: Object.keys(QueueRepeatMode).find(key => QueueRepeatMode[key] == queue.repeatMode), inline: true },
                 { name: "IsLive", value: track.live, inline: true },
-                { name: "RequestedBy", value: queue.metadata.requestedBy, inline: true }
+                { name: "RequestedBy", value: track.requestedBy, inline: true }
             ],
             components: [playback_btns]
         })

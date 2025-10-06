@@ -22,7 +22,6 @@ export async function play(interaction) {
   await interaction.deferReply(); //Telling discord to have patience with this command
   const query = interaction.options.getString('song', true);
   
-  
   let sanitizedQuery = query.trim()
   
   info(interaction, `Sanitized query: ${sanitizedQuery}`)
@@ -35,14 +34,17 @@ export async function play(interaction) {
   
   // Play the song in the voice channel
   let result = null;
+  //Handle some metadata for the queue
+  let queueCreationOptions = {  //These options are set in queue only during its creation with nodeOptions
+    metadata: {
+      channel: interaction.channel,
+      isFirstTrack: true
+    }
+  }
+  // If queue already exists, specify it's not a firstTrack anymore
+  if (queue) queue.metadata.isFirstTrack = false
   try {
-    let metadata = { channel: interaction.channel, requestedBy: interaction.user }
-    if (!queue) metadata['firstTrack'] = true;
-    result = await player.play(voiceChannel, sanitizedQuery, {
-      nodeOptions: {
-        metadata: metadata // Store text channel as metadata on the queue
-      },
-    })
+    result = await player.play(voiceChannel, sanitizedQuery, { requestedBy: interaction.user, nodeOptions: queueCreationOptions })
   } catch (e) {
     // Handle any errors that occur
     error(interaction.channelId, e.message);
