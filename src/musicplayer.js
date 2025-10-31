@@ -1,4 +1,4 @@
-import { useMainPlayer, useQueue, GuildQueueEvent, QueueRepeatMode, useTimeline } from 'discord-player';
+import { useMainPlayer, useQueue, GuildQueueEvent, useTimeline, QueueRepeatMode } from 'discord-player';
 import { ButtonInteraction, CommandInteraction } from 'discord.js';
 import { info, debug, error, sendEmbedded } from "./discord-utils.js"
 
@@ -42,8 +42,6 @@ export async function play(interaction) {
       isFirstTrack: true
     }
   }
-  // If queue already exists, specify it's not a firstTrack anymore
-  if (queue) queue.metadata.isFirstTrack = false
   
   //Actually play the music
   try {
@@ -154,10 +152,10 @@ export async function loop(interaction) {
  
   // Get the loop mode
   const loopMode = interaction.options.getNumber('mode');
-  
+
   // Set the loop mode
   queue.setRepeatMode(loopMode);
- 
+
   // Send a confirmation message
   await sendEmbedded({title: `Loop mode set to ${Object.keys(QueueRepeatMode).find(key => QueueRepeatMode[key] == loopMode)}`, msgSource: interaction})
   info(interaction, "[loop STOP] Changed loop mode")
@@ -188,6 +186,22 @@ export async function pause(interaction) {
   interaction.deferUpdate();
 }
 
+export async function shuffle(interaction) {
+   // Get the current queue
+  const queue = useQueue(interaction.guild);
+ 
+  // Check if there are enough tracks in the queue
+  if (queue.tracks.size < 2) {
+      await sendEmbedded({title: `You can't shuffle queues with less than 2 tracks`, msgSource: interaction})
+  }
+
+  // Shuffle the tracks in the queue
+  queue.tracks.shuffle();
+
+  info(interaction, "[shuffle STOP] Queue shuffled")
+
+  await sendEmbedded({title: `You shuffled ${queue.tracks.size} tracks`, msgSource: interaction})
+}
 
 /**
  * Applies or resets audio filters on the current music queue.

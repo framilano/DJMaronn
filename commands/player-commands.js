@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { QueueRepeatMode } from 'discord-player';
+import { QueueRepeatMode } from "discord-player";
 
 export const data = [
   new SlashCommandBuilder()
@@ -50,7 +50,7 @@ export const data = [
         name: 'Autoplay',
         description: 'Playing similar songs at queue end',
         value: QueueRepeatMode.AUTOPLAY,
-      },
+      }
     ),
   ),
   //https://github.com/Androz2091/discord-player/blob/master/packages/discord-player/src/utils/AudioFilters.ts#L51

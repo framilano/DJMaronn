@@ -27,8 +27,13 @@ const next_track_btn = new ButtonBuilder()
 .setStyle(ButtonStyle.Primary)
 .setEmoji('⏭️');
 
+const shuffle_btn = new ButtonBuilder()
+.setCustomId('shuffle')
+.setStyle(ButtonStyle.Primary)
+.setEmoji('🔀');
+
 const playback_btns = new ActionRowBuilder()
-.addComponents(stop_btn, pause_btn, next_track_btn);
+.addComponents(stop_btn, pause_btn, next_track_btn, shuffle_btn);
 
 const defaultLoopMode = QueueRepeatMode.AUTOPLAY
 
@@ -62,6 +67,7 @@ export function handle_events (player, client) {
         
         //Setting default loop mode
         if (queue.metadata.isFirstTrack) queue.setRepeatMode(defaultLoopMode);
+        queue.metadata.isFirstTrack = false
         
         await sendEmbedded({
             title: `Now playing: ${track.title}`,

@@ -2,7 +2,7 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import jsonData from './config.json' with { type: "json" };
 import { Player } from 'discord-player';
 import { SoundcloudExtractor  } from 'discord-player-soundcloud';
-import { play, stop, skip, loop, pause, filters } from './src/musicplayer.js';
+import { play, stop, skip, shuffle, loop, pause, filters } from './src/musicplayer.js';
 import { autoCompleteSongs, autoCompleteFilters } from './src/autocomplete.js';
 import { deleteOldBotMessagesCommand, checkCommandPermissions } from './src/discord-utils.js';
 import { init_slash_commands } from './src/loader.js';
@@ -48,6 +48,8 @@ async function handleButtons(interaction) {
   if (interaction.customId == 'stop') await stop(interaction)
   if (interaction.customId == 'pause') await pause(interaction)
   if (interaction.customId == 'next_track') await skip(interaction)
+  if (interaction.customId == 'shuffle') await shuffle(interaction)
+
 }
 
 async function handleAutoComplete(interaction) {
