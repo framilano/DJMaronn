@@ -177,7 +177,9 @@ export async function loop(interaction) {
 export async function pause(interaction) {
   // Get the queue's timeline
   const timeline = useTimeline({node: interaction.guild});
- 
+  
+  if (!timeline) interaction.deferUpdate();
+
   // Invert the pause state
   const wasPaused = timeline.paused;
   wasPaused ? timeline.resume() : timeline.pause();
